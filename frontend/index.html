@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReciteRecipe - Share Your Culinary Creations</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #e67e22;
+            --secondary-color: #d35400;
+            --bg-light: #fdf6e3;
+        }
+        
+        body {
+            background-color: var(--bg-light);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .recipe-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .recipe-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .recipe-image-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .recipe-image-container img {
+            transition: transform 0.3s ease;
+        }
+        
+        .recipe-card:hover .recipe-image-container img {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+        
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-box .form-control {
+            border-radius: 25px 0 0 25px;
+            border: none;
+            padding: 15px 25px;
+        }
+        
+        .search-box .btn {
+            border-radius: 0 25px 25px 0;
+            padding: 15px 30px;
+        }
+        
+        .rich-text-editor {
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            min-height: 200px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .rich-text-toolbar {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #ced4da;
+            border-bottom: none;
+        }
+        
+        .rich-text-toolbar button {
+            margin-right: 5px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .error-display {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .admin-badge {
+            background: #dc3545;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        
+        .user-badge {
+            background: #28a745;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        
+        .recipe-detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card h3 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .nav-link.active {
+            font-weight: bold;
+            border-bottom: 2px solid white;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+        
+        .tab-content {
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="showHome()">
+                <i class="bi bi-journal-check"></i> ReciteRecipe
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-home" onclick="showHome()">Home</a>
+                    </li>
+                    <li class="nav-item" id="nav-my-recipes-item" style="display: none;">
+                        <a class="nav-link" href="#" onclick="showMyRecipes()">My Recipes</a>
+                    </li>
+                    <li class="nav-item" id="nav-admin-item" style="display: none;">
+                        <a class="nav-link" href="#admin" onclick="showAdminPanel()">
+                            <i class="bi bi-shield-lock"></i> Admin
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav" id="auth-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showLogin()">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-light text-dark ms-2 px-3" href="#" onclick="showRegister()">Register</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav" id="user-nav" style="display: none;">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="username-display"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showCreateRecipe()">
+                                <i class="bi bi-plus-circle"></i> New Recipe
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Error Display -->
+    <div class="container" id="error-container" style="display: none;">
+        <div class="error-display">
+            <h5><i class="bi bi-exclamation-triangle-fill"></i> Error Occurred</h5>
+            <div id="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id="main-content">
+        <!-- Views will be dynamically loaded here -->
+    </div>
+
+    <!-- Templates -->
+    
+    <!-- Home View Template -->
+    <template id="home-template">
+        <div class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 mb-3">Share Your Culinary Creations</h1>
+                <p class="lead mb-4">Discover, create, and share delicious recipes with food lovers around the world</p>
+                <div class="search-box">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search recipes by title...">
+                        <button class="btn btn-dark" onclick="searchRecipes()">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Latest Recipes</h2>
+                <button class="btn btn-primary" onclick="showCreateRecipe()" id="create-recipe-btn" style="display: none;">
+                    <i class="bi bi-plus-lg"></i> Add Recipe
+                </button>
+            </div>
+            <div class="loading-spinner" id="recipes-loading">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div id="recipes-container" class="row g-4"></div>
+        </div>
+    </template>
+
+    <!-- Login View Template -->
+    <template id="login-template">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">Welcome Back</h3>
+                            <form id="login-form" onsubmit="handleLogin(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Username or Email</label>
+                                    <input type="text" class="form-control" name="username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" name="password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </button>
+                            </form>
+                            <hr class="my-4">
+                            <p class="text-center mb-0">Don't have an account? 
+                                <a href="#" onclick="showRegister()">Register</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Register View Template -->
+    <template id="register-template">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">Create Account</h3>
+                            <form id="register-form" onsubmit="handleRegister(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-control" name="username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" name="password" required minlength="6">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Admin Code <small class="text-muted">(optional)</small>
+                                    </label>
+                                    <input type="password" class="form-control" name="adminCode" placeholder="Leave blank for regular user">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="bi bi-person-plus"></i> Register
+                                </button>
+                            </form>
+                            <hr class="my-4">
+                            <p class="text-center mb-0">Already have an account? 
+                                <a href="#" onclick="showLogin()">Login</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Create/Edit Recipe Template -->
+    <template id="recipe-form-template">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-body p-5">
+                            <h3 class="mb-4" id="recipe-form-title">Create New Recipe</h3>
+                            <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
+                                <input type="hidden" name="recipeId" id="recipe-id">
+                                <div class="mb-3">
+                                    <label class="form-label">Recipe Title</label>
+                                    <input type="text" class="form-control" name="title" required placeholder="e.g., Homemade Chocolate Cake">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <div class="rich-text-toolbar">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('bold')">
+                                            <i class="bi bi-type-bold"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('italic')">
+                                            <i class="bi bi-type-italic"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('underline')">
+                                            <i class="bi bi-type-underline"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('insertUnorderedList')">
+                                            <i class="bi bi-list-ul"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('insertOrderedList')">
+                                            <i class="bi bi-list-ol"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="createLink()">
+                                            <i class="bi bi-link"></i>
+                                        </button>
+                                    </div>
+                                    <div class="rich-text-editor" id="description-editor" contenteditable="true"></div>
+                                    <input type="hidden" name="description" id="description-input">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Recipe Image</label>
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#upload-tab" type="button">
+                                                <i class="bi bi-upload"></i> Upload
+                                            </button>
+                                        </li>
+                                        <li class="nav-item">
+                                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#url-tab" type="button">
+                                                <i class="bi bi-link"></i> Import URL
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="upload-tab">
+                                            <input type="file" class="form-control mt-3" id="image-file" accept="image/*" onchange="handleImageUpload(event)">
+                                            <small class="text-muted">Max file size: 10MB. Supported: jpg, png, gif, webp</small>
+                                        </div>
+                                        <div class="tab-pane fade" id="url-tab">
+                                            <div class="input-group mt-3">
+                                                <input type="url" class="form-control" id="image-url-input" placeholder="https://example.com/image.jpg">
+                                                <button class="btn btn-outline-primary" type="button" onclick="importImageFromUrl()">
+                                                    <i class="bi bi-download"></i> Import
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="image_url" id="image-url-hidden">
+                                    <input type="hidden" name="image_type" id="image-type-hidden" value="upload">
+                                    <div id="image-preview-container"></div>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-fill py-2">
+                                        <i class="bi bi-check-lg"></i> Save Recipe
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary py-2" onclick="showHome()">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Recipe Detail Template -->
+    <template id="recipe-detail-template">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#" onclick="showHome()">Home</a></li>
+                            <li class="breadcrumb-item active" id="recipe-detail-title">Recipe</li>
+                        </ol>
+                    </nav>
+                    <div id="recipe-detail-content"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Admin Panel Template -->
+    <template id="admin-template">
+        <div class="container py-5">
+            <h2 class="mb-4"><i class="bi bi-shield-lock"></i> Admin Panel</h2>
+            
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#users-tab" type="button">
+                        <i class="bi bi-people"></i> Users
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#all-recipes-tab" type="button">
+                        <i class="bi bi-journal-text"></i> All Recipes
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content">
+                <!-- Users Tab -->
+                <div class="tab-pane fade show active" id="users-tab">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3 id="total-users">0</h3>
+                                <p class="mb-0">Total Users</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3 id="total-admins">0</h3>
+                                <p class="mb-0">Admins</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3 id="total-regular-users">0</h3>
+                                <p class="mb-0">Regular Users</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Recipes</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- All Recipes Tab -->
+                <div class="tab-pane fade" id="all-recipes-tab">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3 id="admin-total-recipes">0</h3>
+                                <p class="mb-0">Total Recipes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Image</th>
+                                            <th>Title</th>
+                                            <th>Author</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-recipes-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Bootstrap 5 JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Main JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
