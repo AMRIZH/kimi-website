@@ -3,10 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: reciterecipe-app
+    container_name: kimi_reciterecipe_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3003:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -29,7 +29,7 @@ services:
   # Optional: Nginx reverse proxy for production
   nginx:
     image: nginx:alpine
-    container_name: reciterecipe-nginx
+    container_name: kimi_reciterecipe_nginx
     restart: unless-stopped
     ports:
       - "80:80"
