@@ -2,7 +2,8 @@
 # Multi-stage build for optimized production image
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS dependencies
+# Use Debian slim to allow prebuilt native binaries (faster than Alpine builds)
+FROM node:20-bookworm-slim AS dependencies
 
 WORKDIR /app
 
@@ -10,20 +11,20 @@ WORKDIR /app
 COPY backend/package*.json ./
 
 # Install production dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Stage 2: Production
-FROM node:20-alpine AS production
+FROM node:20-bookworm-slim AS production
 
 # Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -M -s /usr/sbin/nologin nodejs
 
 # Copy dependencies from stage 1
 COPY --from=dependencies /app/node_modules ./node_modules

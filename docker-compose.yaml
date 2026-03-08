@@ -1,11 +1,8 @@
-version: '3.8'
-
 services:
   reciterecipe:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
     container_name: reciterecipe-app
     restart: unless-stopped
     ports:
